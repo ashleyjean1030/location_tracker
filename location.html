@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Location Tracker</title>
+</head>
+<body>
+  <h2>Tracking your location...</h2>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 🔧 Replace with your own Firebase config (from Firebase Console > Project Settings)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "XXXXXXX",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Get URL ?tid=uniqueid
+    const urlParams = new URLSearchParams(window.location.search);
+    const tid = urlParams.get("tid") || "unknown";
+
+    // Save location to Firestore
+    function saveLocation(lat, lon) {
+      db.collection("locations").doc(tid).set({
+        lat: lat,
+        lon: lon,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        document.body.innerHTML += "<p>✅ Location saved successfully!</p>";
+      }).catch((error) => {
+        console.error("❌ Error saving location: ", error);
+      });
+    }
+
+    // Get user's location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+        saveLocation(lat, lon);
+      }, function(error) {
+        document.body.innerHTML += "<p>❌ Error getting location: " + error.message + "</p>";
+      });
+    } else {
+      document.body.innerHTML += "<p>❌ Geolocation not supported.</p>";
+    }
+  </script>
+</body>
+</html>

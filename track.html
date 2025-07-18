@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Track Location</title>
+  <style>
+    #map {
+      height: 500px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>Tracked Location</h2>
+  <div id="map">Loading map...</div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore-compat.js"></script>
+
+  <!-- Google Maps API (Replace YOUR_GOOGLE_MAPS_API_KEY) -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY"></script>
+
+  <script>
+    // 🔧 Replace with your own Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "your-project-id.firebaseapp.com",
+      projectId: "your-project-id",
+      storageBucket: "your-project-id.appspot.com",
+      messagingSenderId: "XXXXXXX",
+      appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Get URL ?tid=uniqueid
+    const urlParams = new URLSearchParams(window.location.search);
+    const tid = urlParams.get("tid") || "unknown";
+
+    // Load map with location
+    function loadMap(lat, lon) {
+      const location = { lat: lat, lng: lon };
+      const map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 15,
+        center: location
+      });
+
+      new google.maps.Marker({
+        position: location,
+        map: map,
+        title: "Tracked Location"
+      });
+    }
+
+    // Fetch location from Firestore
+    db.collection("locations").doc(tid).get().then((doc) => {
+      if (doc.exists) {
+        const data = doc.data();
+        loadMap(data.lat, data.lon);
+      } else {
+        document.getElementById("map").innerHTML = "❌ No location found for this ID.";
+      }
+    }).catch((error) => {
+      document.getElementById("map").innerHTML = "❌ Error: " + error.message;
+    });
+  </script>
+</body>
+</html>
